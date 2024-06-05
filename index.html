@@ -1,13 +1,254 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test</title>
+	<meta charset="UTF-8">
+	<title>MDIA 2294</title>
+	
+	<style>
+	    thead{
+	        font-weight:bold;
+	    }
+	    
+	    td{
+	        padding-left:5px;
+	        padding-right:5px;	        
+	    }
+	    
+	    td.sub-total{
+	        text-align:right;	        
+	    }
+	</style>
 </head>
 <body>
-    
-    <h1> Hello, im testing </h1>
-    <p> this is a pull request </p>
+	<h1>MDIA 2294: ACME Corp Invoice</h1>
+	
+	<table>
+	    <thead>
+	        <tr>
+	            <td>ITEM</td>
+	            <td>DESCRIPTION</td>
+	            <td>QTY</td>
+	            <td>PRICE</td>
+	            <td>LINE TOTAL</td>
+	        </tr>
+	    </thead>
+	    <tbody>
+	        <tr>
+	            <td>1</td>
+	            <td><input id="line-1-description" type="text" size="40" value="Anvil" /></td>
+	            <td><input id="line-1-quantity" type="text" size="3" value="5" /></td>
+	            <td><input id="line-1-price" type="text" size="6" value="35.00" /></td>
+	            <td class="sub-total"><span id="line-1"></span></td>
+	        </tr>
+	        <tr>
+	            <td>2</td>
+	            <td><input id="line-2-description" type="text" size="40" value="Rocket Skates (each)" /></td>
+	            <td><input id="line-2-quantity" type="text" size="3" value="2" /></td>
+	            <td><input id="line-2-price" type="text" size="6" value="24.99" /></td>
+	            <td class="sub-total"><span id="line-2"></span></td>
+	        </tr>
+	        <tr>
+	            <td>3</td>
+	            <td><input id="line-3-description" type="text" size="40" value="Giant Magnet" /></td>
+	            <td><input id="line-3-quantity" type="text" size="3" value="1" /></td>
+	            <td><input id="line-3-price" type="text" size="6" value="125.50" /></td>
+	            <td class="sub-total"><span id="line-3"></span></td>
+	        </tr>
+	        <tr>
+	            <td>4</td>
+	            <td><input id="line-4-description" type="text" size="40" value="Ball bearings" /></td>
+	            <td><input id="line-4-quantity" type="text" size="3" value="1000" /></td>
+	            <td><input id="line-4-price" type="text" size="6" value="0.25" /></td>
+	            <td class="sub-total"><span id="line-4"></span></td>
+	        </tr>
+	        <tr>
+	            <td>5</td>
+	            <td><input id="line-5-description" type="text" size="40" value="Portable holes" /></td>
+	            <td><input id="line-5-quantity" type="text" size="3" value="12" /></td>
+	            <td><input id="line-5-price" type="text" size="6" value="15.25" /></td>
+	            <td class="sub-total"><span id="line-5"></span></td>
+	        </tr>
+	    </tbody>
+	    <tfoot>
+	        <tr>
+	            <td colspan="4" style="text-align:right;">SUB TOTAL</td>  
+	            <td class="sub-total"><span id="sub-total"></span></td>	        
+	        </tr>
+	        <tr>
+	            <td colspan="4" style="text-align:right;">DISCOUNT</td>  
+	            <td class="sub-total"><span id="discount"></span></td>	        
+	        </tr>
+	        <tr>
+	            <td colspan="4" style="text-align:right;">TAX</td>  
+	            <td class="sub-total"><span id="tax"></span></td>	        
+	        </tr>
+	        <tr>
+	            <td colspan="4" style="text-align:right;">TOTAL</td>  
+	            <td class="sub-total" style="border-top:solid black 1px"><span id="Total"></span></td>	        
+	        </tr>
+	    </tfoot>	    
+	</table>
+	
+	<div><button id="calculate">Calculate</button></div>
+	<div>NOTE: discounts of 10% are given to orders over $250</div>
+
+	<script>
+
+		/* Brief steps to start
+			1. store the button in a variable, then add an event listener to it. Add a function and console.log it to make sure when the button is clicked, the function will run.
+			2. calculate each line total: read the values in the qty and price boxes, multiplies them together and display the total on the invoice
+		 	3. calculate subtotal by summing up all line totals and display it. rmb to initialize the sum total to 0
+			4. calculate discount, display it; use ternary operator
+		 	5. calculate tax, display it
+			6. calculate total amount, display it 
+		 	7. refine and clean up the code
+		*/
+		
+		// 'const cal_btn' declares a variable named 'cal_btn' that cannot be changed.
+		// document.querySelector() is a method used to select and retrieve an element from the DOM based on a specified selector.
+		// So document.querySelector("#calculate") goes into the DOM and finds the element with the ID "calculate", which is the <button> element, so now the variable cal_btn is assigned the reference to this <button> element.
+		const calc_btn = document.querySelector("#calculate");
+
+		// discount rate = 10% and tax rate is 12%
+		// I stored the value of discount rate (.1) and tax rate (.12) in a const variable. We won't be changing or reassigning the values;
+		const discount_rate = .1; 
+		const tax_rate = .12;
+
+		// the function calculate() calculates the total cost of the items in the invoice, including discounts and taxes, and updates the corresponding html elements with calculated values. I moved the code that calculates each line to a separate function, so that it can be reused. I dont have to rewrite the code for each line. The code looks cleaner!
+		function calculate() {
+			
+			// I initialized the running_subtotal to 0, so the sum starts from 0 before any line items are added to it. I used let because the value will be changed every time each line adds up.
+			let running_subtotal = 0;
+
+			//This is a simpler way to write running_subtotal = running_subtotal + calc_each_line("#line-1") by using += (addition assignment, adding the right operand)
+				//calc_each_line("#line-1") is a function call to the function cal_each_line(line_id)
+				//"#line-1" is the argument (values) that is passed into the parameter(line_id) and then calculates the total for the line item with the ID "#line-1" and adds to running_subtotal
+				//This concept applies to the next few lines (#2-5); note: running_subtotal is accumulated
+			running_subtotal += calc_each_line ("#line-1");
+			running_subtotal += calc_each_line ("#line-2");
+			running_subtotal += calc_each_line ("#line-3");
+			running_subtotal += calc_each_line ("#line-4");
+			running_subtotal += calc_each_line ("#line-5");
+
+			//now, we have to let the running_subtotal show up on the invoice
+				// .innerText sets or returns the text content of an element
+				// .toFixed(2) rounds the number to two decimal places and returns a string
+				// + is an operator that concatenates the two strings together. 
+			//document.querySelector("#sub-total").innerText finds the element with the ID "#sub-total" from the DOM and set its text content to "$ running_line_total in two decimal places"
+			document.querySelector("#sub-total").innerText = "$ " + running_subtotal.toFixed(2);
+
+			//Next, we calculate the discount
+				// A constant variable 'discount_total' is assigned to a value based on a condition: 
+				// (running_subtotal > 250) checks if the value of running_subtotal is greater than 250. If the condition is true, then the first block of code is going to run, which is running_subtotal multiplies by discount_rate (which is .12). If the condition is not true, the second block of code is going to run and the discount_total will be 0
+			// After the discount_total discount is calculated, we need to display it on the invoice in two decimal places by using document.querySelector().innerText, as mentioned earlier
+			const discount_total = (running_subtotal > 250) ? running_subtotal * discount_rate : 0;
+			document.querySelector("#discount").innerText = "$ " + discount_total.toFixed(2);
+			
+			// Now, we calculate the tax total amount by subtracting the discount from the running total first and then multiplying by the tax rate,and store it in a const variable 'tax_total'. We then update the HTML element with the id "tax" to display the tax amount in two decimal places.
+			const tax_total = (running_subtotal - discount_total) * tax_rate;
+			document.querySelector("#tax").innerText = "$ " + tax_total.toFixed(2);
+			
+			// Same concept applies to calculating the final total amount. we calculate the final total amount by subtracting the discount from the running total and adding the tax rate, store it in a const variable 'total_amount', and then updates the HTML element with the id "tax" to display the tax amount in two decimal places. 
+			const total_amount = running_subtotal - discount_total + tax_total;
+			document.querySelector("#Total").innerText = "$ " +  total_amount.toFixed(2);
+
+			/* previous 'copy-paste' method code
+			
+			//initialize running subtotal
+			let running_subtotal = 0;
+			// line 1 
+			const line_1_qty = document.querySelector("#line-1-quantity").value;
+			const line_1_p = document.querySelector("#line-1-price").value;
+			line_total = line_1_qty * line_1_p;
+			document.querySelector("#line-1").innerText = "$" + line_total.toFixed(2);
+			running_subtotal += line_total;
+
+
+			//line 2
+			const line_2_qty = document.querySelector("#line-2-quantity").value;
+			const line_2_p = document.querySelector("#line-2-price").value;
+			line_total = line_2_qty * line_2_p;
+			document.querySelector("#line-2").innerText = "$" + line_total.toFixed(2);
+			running_subtotal += line_total;
+
+			//line 3
+			const line_3_qty = document.querySelector("#line-3-quantity").value;
+			const line_3_p = document.querySelector("#line-3-price").value;
+			line_total = line_3_qty * line_3_p;
+			document.querySelector("#line-3").innerText = "$" + line_total.toFixed(2);
+			running_subtotal += line_total;
+
+
+			//line 4
+			const line_4_qty = document.querySelector("#line-4-quantity").value;
+			const line_4_p = document.querySelector("#line-4-price").value;
+			line_total = line_4_qty * line_4_p;
+			document.querySelector("#line-4").innerText = "$" + line_total.toFixed(2);
+			running_subtotal += line_total;
+
+
+			//line 5
+			const line_5_qty = document.querySelector("#line-5-quantity").value;
+			const line_5_p = document.querySelector("#line-5-price").value;
+			line_total = line_5_qty * line_5_p;
+			document.querySelector("#line-5").innerText = "$" + line_total.toFixed(2);
+			running_subtotal += line_total;
+
+
+			//subtotal
+			//update the subtotal in HTML
+			document.querySelector("#sub-total").innerText = "$" + running_subtotal.toFixed(2);
+
+			//discount
+			let discount_total = 0;
+			if (running_subtotal > 250){
+				discount_total = running_subtotal * discount_rate;
+				document.querySelector("#discount").innerText = "$" + discount_total.toFixed(2);
+			} else {
+				document.querySelector("#discount").innerText = discount_total;
+			}
+
+			//tax
+			const total_tax = (running_subtotal - discount_total) * tax_rate;
+			document.querySelector("#tax").innerText = "$" + total_tax.toFixed(2);
+
+			//total
+			const total_amount = running_subtotal - discount_total + total_tax;
+			document.querySelector("#Total").innerText = "$" + total_amount.toFixed(2);
+			*/
+	    }
+
+		//The function calc_each_line() calculates the total price for a single line item on the invoice
+		//This function takes one parameter 'line_id'. 
+			//Parameters are variables included in a function's declaration. I think of it as empty boxes, so when we call the function, we fill the boxes with whatever values we want. This makes the function more versatile and reusable as it allows us to create functions that can do the same task with different kinds of information, which we pass as arguments.
+		function calc_each_line (line_id) {
+			// Using the case with argument "#line-1":
+				// line_id takes on the value (which is "#line-1") passed to the function 
+				// line_id + "-quantity" becomes "#line-1" + "-quantity" and is equivalent to "#line-1-quantity"
+				//.value retrieves the value of the selected input element
+				// Number() converts the string to a numeric value
+			// document.querySelector("#line-1-quantity").value selects the HTML element with id 'line-1-quantity' and retrieves its value, and is assigned to a const variable 'qty_input'
+			const qty_input = Number(document.querySelector(line_id + "-quantity").value);
+
+			// Similar concept is applied
+			// line_id + "-price" is equivalent to "#line-1-price". It retrieves the value of the HTML element with id 'line-1-price' and is stored in a variable called 'price_input'
+			const price_input = Number(document.querySelector(line_id + "-price").value);
+
+			// we calculate the line total by multiplying the quantity and price values (which is qty_input and price_input) and store it in a const variable 'line_total'
+			const line_total = qty_input * price_input;
+
+			//Now we display the line total value on the invoice. 
+			//document.querySelector(line_id) becomes document.querySelector("#line-1") and selects the html element with id 'line-1' and sets its text content to the line_total rounded to two decimal places with $ in the front
+			document.querySelector(line_id).innerText = "$ " + line_total.toFixed(2);
+			
+			// the return statement 'passes back' data to the calling code
+			// we 'return'(send) the calculated line total value back to the calling code which is inside the above function
+			return line_total;
+		}
+		
+		// we add an event listener to 'calc_btn' (which stores the <button> element), so that it listens for the 'click' event on that button. So, when the button is clicked, it executes the 'calculate' function  
+		calc_btn.addEventListener("click", calculate);
+	
+    </script>
 </body>
 </html>
